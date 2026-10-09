@@ -28,14 +28,47 @@ from pathlib import Path
 PRACTICE_VIDEO = "video_1"
 
 
-def _patch_numpy_aliases() -> None:
-    """TrackEval còn gọi np.float / np.int (đã bỏ từ NumPy 1.24)."""
-    import numpy as np
+# TrackEval còn gọi np.float / np.int (đã bỏ từ NumPy 1.24). TrackEval chạy trong
+# tiến trình con, nên phải vá numpy NGAY TRONG tiến trình con đó rồi mới chạy script.
+_TRACKEVAL_LAUNCHER = (
+    "import runpy, sys, numpy as np\n"
+    "if not hasattr(np, 'float'): np.float = float\n"
+    "if not hasattr(np, 'int'): np.int = int\n"
+    "if not hasattr(np, 'bool'): np.bool = bool\n"
+    "script = sys.argv.pop(1)\n"
+    "sys.argv[0] = script\n"
+    "runpy.run_path(script, run_name='__main__')\n"
+)
 
-    if not hasattr(np, "float"):
-        np.float = float  # type: ignore[attr-defined]
-    if not hasattr(np, "int"):
-        np.int = int  # type: ignore[attr-defined]
+
+def build_trackeval_command(
+    python: str, trackeval_root: Path, run_name: str, benchmark: str, split: str
+) -> list[str]:
+    """Dựng lệnh gọi ``run_mot_challenge.py`` có vá alias numpy cũ.
+
+    Args:
+        python: Đường dẫn trình thông dịch Python sẽ chạy TrackEval.
+        trackeval_root: Thư mục gốc bản clone TrackEval.
+        run_name: Tên lần chấm đã stage.
+        benchmark: Tên benchmark TrackEval.
+        split: Nhánh dữ liệu, thường là ``train``.
+
+    Returns:
+        Danh sách tham số cho ``subprocess.run``.
+    """
+    return [
+        python,
+        "-c", _TRACKEVAL_LAUNCHER,
+        str(trackeval_root / "scripts" / "run_mot_challenge.py"),
+        "--GT_FOLDER", str(trackeval_root / "data" / "gt" / "mot_challenge"),
+        "--TRACKERS_FOLDER", str(trackeval_root / "data" / "trackers" / "mot_challenge"),
+        "--BENCHMARK", benchmark,
+        "--SPLIT_TO_EVAL", split,
+        "--SEQ_INFO", PRACTICE_VIDEO,
+        "--TRACKERS_TO_EVAL", run_name,
+        "--METRICS", "HOTA", "CLEAR", "Identity",
+        "--USE_PARALLEL", "False",
+    ]
 
 
 def _load_eval_config(lab_data_root: Path) -> dict:
@@ -103,19 +136,8 @@ def run_trackeval(trackeval_root: Path, run_name: str, benchmark: str, split: st
     Raises:
         subprocess.CalledProcessError: Khi TrackEval thoát với mã khác 0.
     """
-    cmd = [
-        sys.executable,
-        str(trackeval_root / "scripts" / "run_mot_challenge.py"),
-        "--GT_FOLDER", str(trackeval_root / "data" / "gt" / "mot_challenge"),
-        "--TRACKERS_FOLDER", str(trackeval_root / "data" / "trackers" / "mot_challenge"),
-        "--BENCHMARK", benchmark,
-        "--SPLIT_TO_EVAL", split,
-        "--SEQ_INFO", PRACTICE_VIDEO,
-        "--TRACKERS_TO_EVAL", run_name,
-        "--METRICS", "HOTA", "CLEAR", "Identity",
-        "--USE_PARALLEL", "False",
-    ]
-    print("Đang chấm video luyện:\n  " + " ".join(cmd) + "\n")
+    cmd = build_trackeval_command(sys.executable, trackeval_root, run_name, benchmark, split)
+    print("Đang chấm video luyện:\n  " + " ".join(cmd[3:]) + "\n")
     subprocess.run(cmd, check=True)
 
 
@@ -125,7 +147,6 @@ def main() -> None:
     Raises:
         SystemExit: Khi file nộp không phải ``video_1.txt``.
     """
-    _patch_numpy_aliases()
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--trackeval-root", required=True, type=Path)
     parser.add_argument("--lab-data-root", required=True, type=Path)

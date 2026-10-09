@@ -1,0 +1,8 @@
+HOTA: nhom01_video1-pedestrian     HOTA      DetA      AssA      DetRe     DetPr     AssRe     AssPr     LocA      OWTA      HOTA(0)   LocA(0)   HOTALocA(0)
+video_1                            30.004    18.426    49.123    19.152    75.062    52.446    80.974    83.073    30.626    37.161    76.949    28.595    
+CLEAR: nhom01_video1-pedestrian    MOTA      MOTP      MODA      CLR_Re    CLR_Pr    MTR       PTR       MLR       sMOTA     CLR_TP    CLR_FN    CLR_FP    IDSW      MT        PT        ML        Frag      
+video_1                            19.278    80.822    19.455    22.485    88.125    14.516    17.742    67.742    14.966    4178      14403     563       33        9         11        42        105       
+Identity: nhom01_video1-pedestrian IDF1      IDR       IDP       IDTP      IDFN      IDFP      
+video_1                            29.749    18.67     73.17     3469      15112     1272      
+Count: nhom01_video1-pedestrian    Dets      GT_Dets   IDs       GT_IDs    
+video_1                            4741      18581     54        62        
