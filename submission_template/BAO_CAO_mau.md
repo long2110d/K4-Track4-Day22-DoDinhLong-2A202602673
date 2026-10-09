@@ -1,6 +1,6 @@
 # Báo cáo lab: chọn tracker cho 5 video
 
-**Nhóm:** ………………………… **Thành viên:** Đỗ Đình Long (2A202602673), Nguyễn Hồng Cường (2A202602415)
+**Nhóm:** Tây Tạng **Thành viên:** Đỗ Đình Long (2A202602673), Nguyễn Hồng Cường (2A202602415)
 
 Detector cố định: `yolo26n.pt`, ảnh 640 px, Re-ID `osnet_x0_25_msmt17`. Không đổi các mục này trong bài nộp chính.
 
